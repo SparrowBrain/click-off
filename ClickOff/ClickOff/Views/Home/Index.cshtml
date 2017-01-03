@@ -134,7 +134,7 @@
                 }
 
                 if (seriesIndex < 0) {
-                    var options = { id: 'series' + seriesIndex + 1, name: name };
+                    var options = { id: 'series' + seriesOptions.length, name: name };
                     Highcharts.charts[0].addSeries(options);
                     Highcharts.charts[1].addSeries(options);
                     seriesIndex = seriesOptions.push(options) - 1;

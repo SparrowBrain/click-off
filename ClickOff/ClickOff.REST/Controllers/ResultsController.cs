@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
 using System.Web;
 using System.Web.Http;
 
@@ -10,9 +12,9 @@ namespace ClickOff.REST.Controllers
     {
         [HttpPost]
         [Route("api/Results")]
-        public void PublishResults(string name)
+        public HttpResponseMessage PublishResults(string name)
         {
-            
+            return Request.CreateResponse(HttpStatusCode.OK);
         }
     }
 }

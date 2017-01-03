@@ -1,57 +1,37 @@
 ﻿@model dynamic
 
 @{
-    ViewBag.Title = "title";
+    ViewBag.Title = "Click-Off!";
 }
 
-<h2>title</h2>
+<h2>Click-Off!</h2>
 
-<div id="container" style="min-width: 310px; height: 400px; margin: 0 auto"></div>
+<div id="cookies" style="min-width: 310px; height: 400px; margin: 0 auto"></div>
+<div id="cps" style="min-width: 310px; height: 400px; margin: 0 auto"></div>
 
 
 @section Scripts{
 <script src="https://code.highcharts.com/highcharts.js"></script>
-<script src="https://code.highcharts.com/modules/exporting.js"></script>
+    <script src="https://code.highcharts.com/modules/exporting.js"></script>
+<script src="~/signalr/hubs"></script>
     <script type="text/javascript">
-        
-        $(function () {
-            $(document).ready(function () {
+
+        $(function() {
+            $(document).ready(function() {
                 Highcharts.setOptions({
                     global: {
                         useUTC: false
                     }
                 });
 
-                Highcharts.chart('container', {
+                Highcharts.chart('cookies', {
                     chart: {
                         type: 'spline',
                         animation: Highcharts.svg, // don't animate in old IE
                         marginRight: 10,
-                        events: {
-                            load: function () {
-
-                                // set up the updating of the chart each second
-                                var series = this.series[0];
-                                setInterval(function () {
-                                    var x = (new Date()).getTime(), // current time
-                                        y = Math.random();
-                                    series.addPoint([x, y], true, shift);
-                                }, 1000);
-
-
-                                var series2 = this.series[1];
-                                setInterval(function () {
-                                    var x = (new Date()).getTime(), // current time
-                                        y = Math.random();
-                                    series2.addPoint([x, y], true, shift);
-                                }, 200);
-
-
-                            }
-                        }
                     },
                     title: {
-                        text: 'Live random data'
+                        text: 'Cookies'
                     },
                     xAxis: {
                         type: 'datetime',
@@ -60,13 +40,44 @@
                     },
                     yAxis: {
                         title: {
-                            text: 'Value'
-                        },
-                        plotLines: [{
-                            value: 0,
-                            width: 1,
-                            color: '#808080'
-                        }]
+                            text: 'Cookies'
+                        }
+                    },
+                    tooltip: {
+                        formatter: function() {
+                            return '<b>' + this.series.name + '</b><br/>' +
+                                Highcharts.dateFormat('%Y-%m-%d %H:%M:%S', this.x) + '<br/>' +
+                                Highcharts.numberFormat(this.y, 2);
+                        }
+                    },
+                    legend: {
+                        enabled: true
+                    },
+                    exporting: {
+                        enabled: true
+                    },
+                    series: [
+                    ]
+                });
+
+                Highcharts.chart('cps', {
+                    chart: {
+                        type: 'spline',
+                        animation: Highcharts.svg, // don't animate in old IE
+                        marginRight: 10,
+                    },
+                    title: {
+                        text: 'Cookies per second'
+                    },
+                    xAxis: {
+                        type: 'datetime',
+                        tickPixelInterval: 150,
+                        minRange: 8000
+                    },
+                    yAxis: {
+                        title: {
+                            text: 'Cps'
+                        }
                     },
                     tooltip: {
                         formatter: function () {
@@ -81,18 +92,54 @@
                     exporting: {
                         enabled: true
                     },
-                    series: [{
-                        name: 'Random data',
-                        data: []
-                    },
-                    {
-                        name: 'DU',
-                        data: []
-                    }]
+                    series: [
+                    ]
                 });
+
             });
         });
 
         var shift = false;
+    </script>
+    <script type="text/javascript">
+        var seriesOptions = [];
+        
+        $(function () {
+            // Declare a proxy to reference the hub.
+            var chat = $.connection.resultHub;
+            // Create a function that the hub can call to broadcast messages.
+            chat.client.updateCookies = function (name, request) {
+
+                var seriesIndex = -1;
+                for (var i = 0; i < seriesOptions.length; i++) {
+                    if (seriesOptions[i].name === name) {
+                        seriesIndex = i;
+                        break;
+                    }
+                }
+
+                if (seriesIndex < 0) {
+                    var options = { name: name };
+                    Highcharts.charts[0].addSeries(options);
+                    Highcharts.charts[1].addSeries(options);
+                    seriesIndex = seriesOptions.push(options) - 1;
+                }
+        
+                var x = (new Date()).getTime(), // current time
+                    y = request.Cookies;
+                Highcharts.charts[0].series[seriesIndex].addPoint([x, y], true, false);
+                y = request.Cps;
+                Highcharts.charts[1].series[seriesIndex].addPoint([x, y], true, false);
+
+            };
+                   
+
+            //// Get the user name and store it to prepend to messages.
+            //$('#displayname').val(prompt('Enter your name:', ''));
+            //// Set initial focus to message input box.
+            //$('#message').focus();
+            //// Start the connection.
+            $.connection.hub.start();
+        });
     </script>
 }

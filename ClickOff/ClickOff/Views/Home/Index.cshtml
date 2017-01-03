@@ -51,7 +51,7 @@
                         }
                     },
                     legend: {
-                        enabled: true
+                        enabled: false
                     },
                     exporting: {
                         enabled: true
@@ -86,8 +86,23 @@
                                 Highcharts.numberFormat(this.y, 2);
                         }
                     },
-                    legend: {
-                        enabled: true
+                    plotOptions: {
+                        series: {
+                            events: {
+                                legendItemClick: function (event) {
+                                    var XYZ = $('#cookies').highcharts(),
+                                        series = XYZ.get(this.options.id); //get corresponding series
+
+                                    if (series) {
+                                        if (this.visible) {
+                                            series.hide();
+                                        } else {
+                                            series.show();
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     },
                     exporting: {
                         enabled: true
@@ -119,7 +134,7 @@
                 }
 
                 if (seriesIndex < 0) {
-                    var options = { name: name };
+                    var options = { id: 'series' + seriesIndex + 1, name: name };
                     Highcharts.charts[0].addSeries(options);
                     Highcharts.charts[1].addSeries(options);
                     seriesIndex = seriesOptions.push(options) - 1;

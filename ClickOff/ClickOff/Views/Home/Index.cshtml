@@ -126,9 +126,9 @@
                     plotOptions: {
                         series: {
                             events: {
-                                legendItemClick: function (event) {
+                                legendItemClick: function(event) {
 
-                                    var toggleSeries = function (chartId, originSeries) {
+                                    var toggleSeries = function(chartId, originSeries) {
                                         var chart = $(chartId).highcharts();
                                         var series = chart.get(originSeries.options.id); //get corresponding series
 
@@ -159,6 +159,25 @@
     </script>
     <script type="text/javascript">
         var seriesOptions = [];
+        var seriesData = [];
+
+        var addPoint = function (chartIndex, seriesIndex, x, y) {
+            // TODO resolution by name, not index...
+            if (seriesIndex >= seriesData.length) {
+                var data = [[], [], []];
+                seriesData.push(data);
+            }
+
+            seriesData[seriesIndex][chartIndex].push([x, y]);
+
+            if (Highcharts.charts[chartIndex].series[seriesIndex].visible) {
+                Highcharts.charts[chartIndex].series[seriesIndex].addPoint([x, y], true, false);
+            } else {
+                Highcharts.charts[chartIndex].series[seriesIndex].setData(seriesData[seriesIndex][chartIndex], true, false);
+            }
+
+
+        }
 
         $(function() {
             // Declare a proxy to reference the hub.
@@ -182,15 +201,21 @@
                     seriesIndex = seriesOptions.push(options) - 1;
                 }
 
-                var x = (new Date()).getTime(), // current time
-                    y = request.CookiesBaked;
-                Highcharts.charts[0].series[seriesIndex].addPoint([x, y], true, false);
-                y = request.CookiesInBank;
-                Highcharts.charts[1].series[seriesIndex].addPoint([x, y], true, false);
-                y = request.Cps;
-                Highcharts.charts[2].series[seriesIndex].addPoint([x, y], true, false);
+                var x = (new Date()).getTime(); // current time
+                var y = request.CookiesBaked;
+                addPoint(0, seriesIndex, x, y);
+                //Highcharts.charts[0].series[seriesIndex].addPoint([x, y], true, false);
 
+                y = request.CookiesInBank;
+                addPoint(1, seriesIndex, x, y);
+                //Highcharts.charts[1].series[seriesIndex].addPoint([x, y], true, false);
+
+                y = request.Cps;
+                addPoint(2, seriesIndex, x, y);
+                //Highcharts.charts[2].series[seriesIndex].addPoint([x, y], true, false);
             };
+            
+            
 
 
             //// Get the user name and store it to prepend to messages.
@@ -200,5 +225,51 @@
             //// Start the connection.
             $.connection.hub.start();
         });
+
+        // script to report data with:
+        //var getStat = function (index) {
+        //    var numberParts = $("#menu .listing:eq(" + index + ")").text().split(":")[1].trim().split(" ");
+        //    return numberParts[0] + " " + numberParts[1];
+        //}
+
+        //var prepareRequest = function () {
+        //    var statsOpened = $("#menu").find(".section").text() === "Statistics";
+        //    if (!statsOpened) {
+        //        $("#statsButton").click();
+        //    }
+
+        //    var request = {
+        //        CookiesBaked: getStat(1),
+        //        CookiesInBank: getStat(0),
+        //        Cps: getStat(5)
+        //    };
+
+        //    if (!statsOpened) {
+        //        $("#statsButton").click();
+        //    }
+
+        //    return request;
+        //}
+
+        //var address = "http://localhost/ClickOff/api/Results?name=";
+        //var sendData = function (name) {
+        //    $.ajax({
+        //        url: address + name,
+        //        method: 'POST',
+        //        async: true,
+        //        data: prepareRequest()
+
+        //    });
+        //}
+
+        //var report = true;
+        //var reportData = function (name, timeout) {
+        //    sendData(name);
+        //    if (!report) {
+        //        return;
+        //    }
+
+        //    setTimeout(reportData, timeout, name, timeout);
+        //}
     </script>
 }

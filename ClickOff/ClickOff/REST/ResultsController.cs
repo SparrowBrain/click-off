@@ -5,11 +5,13 @@ using System.Globalization;
 using System.Net;
 using System.Net.Http;
 using System.Web.Http;
+using System.Web.Http.Cors;
 using ClickOff.Hubs;
 using Microsoft.AspNet.SignalR;
 
 namespace ClickOff.REST
 {
+    [EnableCors(origins: "http://orteil.dashnet.org", headers: "*", methods: "*")]
     public class ResultsController: ApiController
     {
         private static readonly Dictionary<string, double> Multipliers = new Dictionary<string, double>

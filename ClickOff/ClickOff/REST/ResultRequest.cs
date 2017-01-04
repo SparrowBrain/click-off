@@ -2,7 +2,8 @@ namespace ClickOff.REST
 {
     public class ResultRequest
     {
-        public double Cookies { get; set; }
+        public double CookiesBaked { get; set; }
+        public double CookiesInBank { get; set; }
         public double Cps { get; set; }
     }
 }

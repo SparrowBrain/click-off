@@ -297,6 +297,7 @@
     <Compile Include="App_Start\SwaggerConfig.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="Controllers\Home.cs" />
+    <Compile Include="REST\Request.cs" />
     <Compile Include="REST\ResultRequest.cs" />
     <Compile Include="REST\ResultsController.cs" />
     <Compile Include="Global.asax.cs">

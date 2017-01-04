@@ -6,14 +6,15 @@
 
 <h2>Click-Off!</h2>
 
-<div id="cookies" style="min-width: 310px; height: 400px; margin: 0 auto"></div>
+<div id="cookiesBaked" style="min-width: 310px; height: 400px; margin: 0 auto"></div>
+<div id="cookiesInBank" style="min-width: 310px; height: 400px; margin: 0 auto"></div>
 <div id="cps" style="min-width: 310px; height: 400px; margin: 0 auto"></div>
 
 
 @section Scripts{
-<script src="https://code.highcharts.com/highcharts.js"></script>
+    <script src="https://code.highcharts.com/highcharts.js"></script>
     <script src="https://code.highcharts.com/modules/exporting.js"></script>
-<script src="~/signalr/hubs"></script>
+    <script src="~/signalr/hubs"></script>
     <script type="text/javascript">
 
         $(function() {
@@ -24,14 +25,50 @@
                     }
                 });
 
-                Highcharts.chart('cookies', {
+                Highcharts.chart('cookiesBaked', {
                     chart: {
                         type: 'spline',
                         animation: Highcharts.svg, // don't animate in old IE
                         marginRight: 10,
                     },
                     title: {
-                        text: 'Cookies'
+                        text: 'Cookies baked'
+                    },
+                    xAxis: {
+                        type: 'datetime',
+                        tickPixelInterval: 150,
+                        minRange: 8000
+                    },
+                    yAxis: {
+                        title: {
+                            text: 'Cookies'
+                        }
+                    },
+                    tooltip: {
+                        formatter: function() {
+                            return '<b>' + this.series.name + '</b><br/>' +
+                                Highcharts.dateFormat('%Y-%m-%d %H:%M:%S', this.x) + '<br/>' +
+                                Highcharts.numberFormat(this.y, 2);
+                        }
+                    },
+                    legend: {
+                        enabled: false
+                    },
+                    exporting: {
+                        enabled: true
+                    },
+                    series: [
+                    ]
+                });
+
+                Highcharts.chart('cookiesInBank', {
+                    chart: {
+                        type: 'spline',
+                        animation: Highcharts.svg, // don't animate in old IE
+                        marginRight: 10,
+                    },
+                    title: {
+                        text: 'Cookies in bank'
                     },
                     xAxis: {
                         type: 'datetime',
@@ -80,7 +117,7 @@
                         }
                     },
                     tooltip: {
-                        formatter: function () {
+                        formatter: function() {
                             return '<b>' + this.series.name + '</b><br/>' +
                                 Highcharts.dateFormat('%Y-%m-%d %H:%M:%S', this.x) + '<br/>' +
                                 Highcharts.numberFormat(this.y, 2);
@@ -90,16 +127,22 @@
                         series: {
                             events: {
                                 legendItemClick: function (event) {
-                                    var XYZ = $('#cookies').highcharts(),
-                                        series = XYZ.get(this.options.id); //get corresponding series
 
-                                    if (series) {
-                                        if (this.visible) {
-                                            series.hide();
-                                        } else {
-                                            series.show();
+                                    var toggleSeries = function (chartId, originSeries) {
+                                        var chart = $(chartId).highcharts();
+                                        var series = chart.get(originSeries.options.id); //get corresponding series
+
+                                        if (series) {
+                                            if (originSeries.visible) {
+                                                series.hide();
+                                            } else {
+                                                series.show();
+                                            }
                                         }
                                     }
+
+                                    toggleSeries("#cookiesBaked", this);
+                                    toggleSeries("#cookiesInBank", this);
                                 }
                             }
                         }
@@ -110,20 +153,18 @@
                     series: [
                     ]
                 });
-
             });
         });
 
-        var shift = false;
     </script>
     <script type="text/javascript">
         var seriesOptions = [];
-        
-        $(function () {
+
+        $(function() {
             // Declare a proxy to reference the hub.
             var chat = $.connection.resultHub;
             // Create a function that the hub can call to broadcast messages.
-            chat.client.updateCookies = function (name, request) {
+            chat.client.updateCookies = function(name, request) {
 
                 var seriesIndex = -1;
                 for (var i = 0; i < seriesOptions.length; i++) {
@@ -137,17 +178,20 @@
                     var options = { id: 'series' + seriesOptions.length, name: name };
                     Highcharts.charts[0].addSeries(options);
                     Highcharts.charts[1].addSeries(options);
+                    Highcharts.charts[2].addSeries(options);
                     seriesIndex = seriesOptions.push(options) - 1;
                 }
-        
+
                 var x = (new Date()).getTime(), // current time
-                    y = request.Cookies;
+                    y = request.CookiesBaked;
                 Highcharts.charts[0].series[seriesIndex].addPoint([x, y], true, false);
-                y = request.Cps;
+                y = request.CookiesInBank;
                 Highcharts.charts[1].series[seriesIndex].addPoint([x, y], true, false);
+                y = request.Cps;
+                Highcharts.charts[2].series[seriesIndex].addPoint([x, y], true, false);
 
             };
-                   
+
 
             //// Get the user name and store it to prepend to messages.
             //$('#displayname').val(prompt('Enter your name:', ''));

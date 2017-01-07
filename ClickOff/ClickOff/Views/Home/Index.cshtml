@@ -158,20 +158,27 @@
 
     </script>
     <script type="text/javascript">
+        var poopiePoints = 120;
         var seriesOptions = [];
         var seriesData = [];
 
-        var addPoint = function (chartIndex, seriesIndex, x, y) {
+        var addPoint = function(chartIndex, seriesIndex, x, y) {
             // TODO resolution by name, not index...
             if (seriesIndex >= seriesData.length) {
                 var data = [[], [], []];
                 seriesData.push(data);
             }
+            
+            var shift = seriesData[seriesIndex][chartIndex].length >= poopiePoints;
+            if (shift) {
+                seriesData[seriesIndex][chartIndex].shift([x, y]);
+            } else {
+                seriesData[seriesIndex][chartIndex].push([x, y]);
+            }
 
-            seriesData[seriesIndex][chartIndex].push([x, y]);
 
             if (Highcharts.charts[chartIndex].series[seriesIndex].visible) {
-                Highcharts.charts[chartIndex].series[seriesIndex].addPoint([x, y], true, false);
+                Highcharts.charts[chartIndex].series[seriesIndex].addPoint([x, y], true, shift);
             } else {
                 Highcharts.charts[chartIndex].series[seriesIndex].setData(seriesData[seriesIndex][chartIndex], true, false);
             }
@@ -214,8 +221,6 @@
                 addPoint(2, seriesIndex, x, y);
                 //Highcharts.charts[2].series[seriesIndex].addPoint([x, y], true, false);
             };
-            
-            
 
 
             //// Get the user name and store it to prepend to messages.

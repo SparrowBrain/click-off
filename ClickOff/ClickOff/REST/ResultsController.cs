@@ -2,8 +2,10 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Net;
 using System.Net.Http;
+using System.Threading.Tasks;
 using System.Web.Http;
 using System.Web.Http.Cors;
 using ClickOff.Hubs;
@@ -16,6 +18,7 @@ namespace ClickOff.REST
     {
         private static readonly Dictionary<string, double> Multipliers = new Dictionary<string, double>
         {
+            {"undefined", 1},
             {"million", Math.Pow(10, 6)},
             {"billion", Math.Pow(10, 9)},
             {"trillion", Math.Pow(10, 12)},
@@ -35,7 +38,7 @@ namespace ClickOff.REST
 
         [HttpPost]
         [Route("api/Results")]
-        public HttpResponseMessage PublishResults(string name, Request request)
+        public async Task<HttpResponseMessage> PublishResults(string name, Request request)
         {
             var resultRequest = new ResultRequest
             {
@@ -44,6 +47,20 @@ namespace ClickOff.REST
                 Cps = ParseShortNumber(request.Cps)
             };
 
+            try
+            {
+                using (var file = File.AppendText($"C:\\clickOff\\{name}.txt"))
+                {
+                    await
+                        file.WriteLineAsync(
+                            $"{DateTime.Now.ToString(CultureInfo.InvariantCulture)}|{resultRequest.CookiesBaked}|{resultRequest.CookiesInBank}|{resultRequest.Cps}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+            }
+
             var context = GlobalHost.ConnectionManager.GetHubContext<ResultHub>();
             context.Clients.All.updateCookies(name, resultRequest);
             return Request.CreateResponse(HttpStatusCode.OK);
@@ -51,7 +68,7 @@ namespace ClickOff.REST
 
         private double ParseShortNumber(string number)
         {
-            var numberParts = number.Split(new[] {' '}, StringSplitOptions.RemoveEmptyEntries);
+            var numberParts = number.Split(new[] {'♥'}, StringSplitOptions.RemoveEmptyEntries);
             if (numberParts.Length == 0)
             {
                 return double.NaN;
